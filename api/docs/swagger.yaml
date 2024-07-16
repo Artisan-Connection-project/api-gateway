@@ -1,0 +1,65 @@
+definitions:
+  product_service.AddProductRequest:
+    properties:
+      artisan_id:
+        type: string
+      category_id:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      quantity:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a sample server for a restaurant reservation system.
+  title: Restaurant Reservation System API
+  version: "1.0"
+paths:
+  /api/v1/product:
+    post:
+      consumes:
+      - application/json
+      description: Creating a new product
+      parameters:
+      - description: Create
+        in: body
+        name: Add_Product_Request
+        required: true
+        schema:
+          $ref: '#/definitions/product_service.AddProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create Product
+      tags:
+      - Product
+swagger: "2.0"
