@@ -9,7 +9,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// @title Restaurant Reservation System API
+// @title Artisan Connect
 // @version 1.0
 // @description This is a sample server for a restaurant reservation system.
 // @host localhost:8080
@@ -43,13 +43,13 @@ func (s *Server) InitRoutes(r *gin.Engine) {
 
 		productGroup := api.Group("/products")
 		{
-			productGroup.POST("", product.AddProduct)
+			productGroup.POST("/create", product.AddProduct)
 			productGroup.PUT("/:id", product.EditProduct)
 			productGroup.DELETE("/:id", product.DeleteProduct)
-			productGroup.GET("", product.GetProducts)
+			productGroup.GET("/all", product.GetProducts)
 			productGroup.GET("/:id", product.GetProduct)
 			productGroup.POST("/search", product.SearchProducts)
-			productGroup.POST("/:id/rate", product.AddRating)
+			productGroup.POST("/:product_id/rate", product.AddRating)
 			productGroup.GET("/:id/ratings", product.GetRatings)
 		}
 
@@ -68,7 +68,7 @@ func (s *Server) InitRoutes(r *gin.Engine) {
 		categoryGroup := api.Group("/categories")
 		{
 			categoryGroup.POST("/artisan", product.AddArtisanCategory)
-			categoryGroup.POST("/product", product.AddProductCategory)
+			categoryGroup.POST("/product", product.AddProductCategory) //<--------------------------------------------------------
 		}
 
 		api.GET("/statistics", product.GetStatistics)
