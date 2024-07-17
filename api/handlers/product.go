@@ -52,6 +52,7 @@ func NewProductHandler(productClient pro.ProductServiceClient) ProductHandler {
 // @Accept  json
 // @Produce  json
 // @Param Add_Product_Request body product_service.AddProductRequest true "Create"
+// @Security ApiKeyAuth
 // @Success 201 {object} product_service.AddProductResponse
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
@@ -80,6 +81,7 @@ func (h *productHandler) AddProduct(c *gin.Context) {
 // @Produce  json
 // @Param Product_id path string true "product_id"
 // @Param UpdateProduct body product_service.EditProductRequest true "Update"
+// @Security ApiKeyAuth
 // @Success 200 {object} product_service.EditProductResponse
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
@@ -108,6 +110,7 @@ func (h *productHandler) EditProduct(c *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param id path string true "Product ID" format(uuid)
+// @Security ApiKeyAuth
 // @Success 200 {object} product_service.DeleteProductResponse
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
@@ -137,6 +140,7 @@ func (h *productHandler) DeleteProduct(c *gin.Context) {
 // @Produce  json
 // @Param limit query string true "limit"
 // @Param page query string true "page"
+// @Security ApiKeyAuth
 // @Success 200 {object} []product_service.Product
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
@@ -164,6 +168,7 @@ func (h *productHandler) GetProducts(c *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param id path string true "Product ID" format(uuid)
+// @Security ApiKeyAuth
 // @Success 200 {object} product_service.Product
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
@@ -205,6 +210,7 @@ func (h *productHandler) GetProduct(c *gin.Context) {
 // @Param max_price query string false "maximum price"
 // @Param limit query string false "limit"
 // @Param page query string false "page"
+// @Security ApiKeyAuth
 // @Success 200 {object} []product_service.Product
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
@@ -254,6 +260,7 @@ func (h *productHandler) SearchProducts(c *gin.Context) {
 // @Produce  json
 // @Param product_id path string true "Product ID" format(uuid)
 // @Param AddRatingRequest body models.AddRatingRequest true "rating a product"
+// @Security ApiKeyAuth
 // @Success 201 {object} product_service.AddRatingResponse
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
@@ -292,6 +299,7 @@ func (h *productHandler) AddRating(c *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param id path string true "Product ID" format(uuid)
+// @Security ApiKeyAuth
 // @Success 200 {object} []product_service.Rating
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
@@ -312,13 +320,26 @@ func (h *productHandler) GetRatings(c *gin.Context) {
 	c.JSON(http.StatusOK, resPro.Ratings)
 }
 
+// @Summary Place an order
+// @Description Place an order
+// @Tags Orders
+// @Accept  json
+// @Produce  json
+// @Param order body product_service.PlaceOrderRequest true "Place Order Request"
+// @Security ApiKeyAuth
+// @Success 200 {object} product_service.PlaceOrderResponse
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/orders [post]
 func (h *productHandler) PlaceOrder(c *gin.Context) {
-	reqPro := pro.PlaceOrderRequest{}
-	err := c.ShouldBindJSON(&reqPro)
-	if err != nil {
+	var reqPro pro.PlaceOrderRequest
+	if err := c.ShouldBindJSON(&reqPro); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
 	resPro, err := h.ProductService.PlaceOrder(c, &reqPro)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -328,13 +349,23 @@ func (h *productHandler) PlaceOrder(c *gin.Context) {
 	c.JSON(http.StatusOK, resPro)
 }
 
+// @Summary Cancel an order
+// @Description Cancel an order
+// @Tags Orders
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Cancel Order Request"
+// @Security ApiKeyAuth
+// @Success 200 {object} product_service.CancelOrderRequest
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/orders/{id}/cancel [put]
 func (h *productHandler) CancelOrder(c *gin.Context) {
-	reqPro := pro.CancelOrderRequest{}
-	err := c.ShouldBindJSON(&reqPro)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	id := c.Param("id")
+	reqPro := pro.CancelOrderRequest{Id: id}
+
 	resPro, err := h.ProductService.CancelOrder(c, &reqPro)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -344,13 +375,30 @@ func (h *productHandler) CancelOrder(c *gin.Context) {
 	c.JSON(http.StatusOK, resPro)
 }
 
+// @Summary Update an order status
+// @Description Update an order status
+// @Tags Orders
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Update Order Status Request"
+// @Param Status body models.UpdateOrderStatus true "Update Order Status"
+// @Security ApiKeyAuth
+// @Success 200 {object} product_service.UpdateOrderStatusResponse
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/orders/{id}/status [put]
 func (h *productHandler) UpdateOrderStatus(c *gin.Context) {
-	reqPro := pro.UpdateOrderStatusRequest{}
-	err := c.ShouldBindJSON(&reqPro)
+	id := c.Param("id")
+	var reqProdMod pro.UpdateOrderStatusRequest
+	reqPro := pro.UpdateOrderStatusRequest{Id: id}
+	err := c.ShouldBindJSON(&reqProdMod)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	reqPro.Status = reqProdMod.Status
 	resPro, err := h.ProductService.UpdateOrderStatus(c, &reqPro)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -360,29 +408,54 @@ func (h *productHandler) UpdateOrderStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, resPro)
 }
 
+// @Summary Get all orders
+// @Description Get all orders
+// @Tags Orders
+// @Accept  json
+// @Produce  json
+// @Param limit query string true "limit"
+// @Param page query string true "page"
+// @Security ApiKeyAuth
+// @Success 200 {object} []product_service.Order
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/orders/getall [get]
 func (h *productHandler) GetOrders(c *gin.Context) {
-	reqPro := pro.GetOrdersRequest{}
-	err := c.ShouldBindJSON(&reqPro)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	limit := c.Query("limit")
+	page := c.Query("page")
+
+	reqPro := pro.GetOrdersRequest{
+		Limit: limit,
+		Page:  page,
 	}
+
 	resPro, err := h.ProductService.GetOrders(c, &reqPro)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, resPro)
+	c.JSON(http.StatusOK, resPro.Orders)
 }
 
+// @Summary Get an order
+// @Description Get an order by its ID
+// @Tags Orders
+// @Accept  json
+// @Produce  json
+// @Param id path string true "order_id"
+// @Security ApiKeyAuth
+// @Success 200 {object} []product_service.Order
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/orders/{id} [get]
 func (h *productHandler) GetOrder(c *gin.Context) {
-	reqPro := pro.GetOrderRequest{}
-	err := c.ShouldBindJSON(&reqPro)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	id := c.Param("id")
+	reqPro := pro.GetOrderRequest{Id: id}
 	resPro, err := h.ProductService.GetOrder(c, &reqPro)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -392,45 +465,107 @@ func (h *productHandler) GetOrder(c *gin.Context) {
 	c.JSON(http.StatusOK, resPro)
 }
 
+// @Summary Pay for an Order
+// @Description Pay for an Order with a card
+// @Tags Payment
+// @Accept  json
+// @Produce  json
+// @Param order_id path string true "order_id" format(uuid)
+// @Param Payment body models.PayOrderRequest true "payment"
+// @Security ApiKeyAuth
+// @Success 201 {object} product_service.PayOrderResponse
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/orders/{order_id}/pay [post]
 func (h *productHandler) PayOrder(c *gin.Context) {
-	reqPro := pro.PayOrderRequest{}
-	err := c.ShouldBindJSON(&reqPro)
+	id := c.Param("order_id")
+	reqPayMod := models.PayOrderRequest{}
+	reqPro := pro.PayOrderRequest{OrderId: id}
+
+	err := c.ShouldBindJSON(&reqPayMod)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	reqPro.CardNumber = reqPayMod.CardNumber
+	reqPro.Cvv = reqPayMod.Cvv
+	reqPro.ExpiryDate = reqPayMod.ExpiryDate
+
 	resPro, err := h.ProductService.PayOrder(c, &reqPro)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	h.ProductService.UpdateOrderStatus(c, &pro.UpdateOrderStatusRequest{Id: id, Status: "processing"})
+
 	c.JSON(http.StatusOK, resPro)
 }
 
+// @Summary Check Payment
+// @Description Get Payment
+// @Tags Payment
+// @Accept  json
+// @Produce  json
+// @Param payment_id query string true "payment id" format(uuid)
+// @Param id path string true "order_id" format(uuid)
+// @Security ApiKeyAuth
+// @Success 201 {object} product_service.Payment
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/orders/{id}/payment/ [get]
 func (h *productHandler) CheckPaymentStatus(c *gin.Context) {
-	reqPro := pro.CheckPaymentStatusRequest{}
-	err := c.ShouldBindJSON(&reqPro)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	orderId := c.Param("id")
+	paymentId := c.Query("payment_id")
+	reqPro := pro.CheckPaymentStatusRequest{
+		OrderId:   orderId,
+		PaymentId: paymentId,
 	}
+
 	resPro, err := h.ProductService.CheckPaymentStatus(c, &reqPro)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, resPro)
+	c.JSON(http.StatusOK, resPro.Payment)
 }
 
+// @Summary Update shipping info
+// @Description Update shipping info in order table
+// @Tags Orders
+// @Accept  json
+// @Produce  json
+// @Param id path string true "order id"
+// @Param ShippingInfo body models.UpdateShippingInfoRequest true "shipping info"
+// @Security ApiKeyAuth
+// @Success 200 {object} product_service.UpdateShippingInfoResponse
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/orders/{id}/shipping [put]
 func (h *productHandler) UpdateShippingInfo(c *gin.Context) {
-	reqPro := pro.UpdateShippingInfoRequest{}
-	err := c.ShouldBindJSON(&reqPro)
+	reqShipModel := models.UpdateShippingInfoRequest{}
+	orderId := c.Param("id")
+
+	reqPro := pro.UpdateShippingInfoRequest{OrderId: orderId}
+
+	err := c.ShouldBindJSON(&reqShipModel)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	reqPro.Carrier = reqShipModel.Carrier
+	reqPro.EstimatedDeliveryDate = reqShipModel.EstimatedDeliveryDate
+	reqPro.TrackingNumber = reqShipModel.TrackingNumber
+
 	resPro, err := h.ProductService.UpdateShippingInfo(c, &reqPro)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -462,6 +597,7 @@ func (h *productHandler) AddArtisanCategory(c *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param Product_Category body product_service.AddProductCategoryRequest true "product category"
+// @Security ApiKeyAuth
 // @Success 200 {object} product_service.AddProductCategoryResponse
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string

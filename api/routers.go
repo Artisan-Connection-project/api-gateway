@@ -3,6 +3,7 @@ package api
 import (
 	_ "api_gateway/api/docs"
 	"api_gateway/api/handlers"
+	"api_gateway/api/middleware"
 
 	"github.com/gin-gonic/gin"
 	files "github.com/swaggo/files"
@@ -13,6 +14,11 @@ import (
 // @version 1.0
 // @description This is a sample server for a restaurant reservation system.
 // @host localhost:8080
+// @BasePath        /
+// @schemes         http
+// @securityDefinitions.apiKey ApiKeyAuth
+// @in              header
+// @name            Authorization
 type Server struct {
 	Handlers handlers.MainHandler
 }
@@ -31,9 +37,10 @@ func (s *Server) InitRoutes(r *gin.Engine) {
 	auth := s.Handlers.Auth()
 	product := s.Handlers.Product()
 
+	r.Use(middleware.AuthMiddleware("secret_key"))
+
 	api := r.Group("/api/v1")
 	{
-
 		authGroup := api.Group("/auth")
 		{
 			authGroup.POST("/login", auth.Login)
@@ -58,10 +65,10 @@ func (s *Server) InitRoutes(r *gin.Engine) {
 			orderGroup.POST("", product.PlaceOrder)
 			orderGroup.PUT("/:id/cancel", product.CancelOrder)
 			orderGroup.PUT("/:id/status", product.UpdateOrderStatus)
-			orderGroup.GET("", product.GetOrders)
+			orderGroup.GET("/getall", product.GetOrders)
 			orderGroup.GET("/:id", product.GetOrder)
-			orderGroup.POST("/:id/pay", product.PayOrder)
-			orderGroup.GET("/:id/payment-status", product.CheckPaymentStatus)
+			orderGroup.POST("/:order_id/pay", product.PayOrder)
+			orderGroup.GET("/:id/payment", product.CheckPaymentStatus)
 			orderGroup.PUT("/:id/shipping", product.UpdateShippingInfo)
 		}
 

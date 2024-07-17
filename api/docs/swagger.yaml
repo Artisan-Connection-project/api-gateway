@@ -1,3 +1,4 @@
+basePath: /
 definitions:
   models.AddRatingRequest:
     properties:
@@ -6,6 +7,31 @@ definitions:
       rating:
         type: number
       user_id:
+        type: string
+    type: object
+  models.PayOrderRequest:
+    properties:
+      card_number:
+        type: string
+      cvv:
+        type: string
+      expiry_date:
+        type: string
+      payment_method:
+        type: string
+    type: object
+  models.UpdateOrderStatus:
+    properties:
+      status:
+        type: string
+    type: object
+  models.UpdateShippingInfoRequest:
+    properties:
+      carrier:
+        type: string
+      estimated_delivery_date:
+        type: string
+      tracking_number:
         type: string
     type: object
   product_service.AddProductCategoryRequest:
@@ -75,6 +101,11 @@ definitions:
       user_id:
         type: string
     type: object
+  product_service.CancelOrderRequest:
+    properties:
+      id:
+        type: string
+    type: object
   product_service.DeleteProductResponse:
     properties:
       message:
@@ -116,6 +147,98 @@ definitions:
       updated_at:
         type: string
     type: object
+  product_service.Item:
+    properties:
+      price:
+        type: number
+      product_id:
+        type: string
+      quantity:
+        type: integer
+    type: object
+  product_service.Order:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      shipping_address:
+        type: string
+      status:
+        type: string
+      total_amount:
+        type: number
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  product_service.PayOrderResponse:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      id:
+        type: string
+      order_id:
+        type: string
+      payment_method:
+        type: string
+      status:
+        type: string
+      transaction_id:
+        type: string
+    type: object
+  product_service.Payment:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      id:
+        type: string
+      order_id:
+        type: string
+      payment_method:
+        type: string
+      status:
+        type: string
+      transaction_id:
+        type: string
+    type: object
+  product_service.PlaceOrderRequest:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/product_service.Item'
+        type: array
+      shipping_address:
+        type: string
+      status:
+        type: string
+      user_id:
+        type: string
+    type: object
+  product_service.PlaceOrderResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/product_service.Item'
+        type: array
+      shipping_address:
+        type: string
+      status:
+        type: string
+      total_price:
+        type: number
+      user_id:
+        type: string
+    type: object
   product_service.Product:
     properties:
       artisan_id:
@@ -150,6 +273,28 @@ definitions:
       rating:
         type: number
       user_id:
+        type: string
+    type: object
+  product_service.UpdateOrderStatusResponse:
+    properties:
+      id:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  product_service.UpdateShippingInfoResponse:
+    properties:
+      carrier:
+        type: string
+      estimated_delivery_date:
+        type: string
+      order_id:
+        type: string
+      tracking_number:
+        type: string
+      updated_at:
         type: string
     type: object
 host: localhost:8080
@@ -196,9 +341,423 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: Create New Category for Product
       tags:
       - Product Category
+  /api/v1/orders:
+    post:
+      consumes:
+      - application/json
+      description: Place an order
+      parameters:
+      - description: Place Order Request
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/product_service.PlaceOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product_service.PlaceOrderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Place an order
+      tags:
+      - Orders
+  /api/v1/orders/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get an order by its ID
+      parameters:
+      - description: order_id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/product_service.Order'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get an order
+      tags:
+      - Orders
+  /api/v1/orders/{id}/cancel:
+    put:
+      consumes:
+      - application/json
+      description: Cancel an order
+      parameters:
+      - description: Cancel Order Request
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product_service.CancelOrderRequest'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Cancel an order
+      tags:
+      - Orders
+  /api/v1/orders/{id}/payment/:
+    get:
+      consumes:
+      - application/json
+      description: Get Payment
+      parameters:
+      - description: payment id
+        format: uuid
+        in: query
+        name: payment_id
+        required: true
+        type: string
+      - description: order_id
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/product_service.Payment'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Check Payment
+      tags:
+      - Payment
+  /api/v1/orders/{id}/shipping:
+    put:
+      consumes:
+      - application/json
+      description: Update shipping info in order table
+      parameters:
+      - description: order id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: shipping info
+        in: body
+        name: ShippingInfo
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateShippingInfoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product_service.UpdateShippingInfoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update shipping info
+      tags:
+      - Orders
+  /api/v1/orders/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: Update an order status
+      parameters:
+      - description: Update Order Status Request
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Order Status
+        in: body
+        name: Status
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateOrderStatus'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product_service.UpdateOrderStatusResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update an order status
+      tags:
+      - Orders
+  /api/v1/orders/{order_id}/pay:
+    post:
+      consumes:
+      - application/json
+      description: Pay for an Order with a card
+      parameters:
+      - description: order_id
+        format: uuid
+        in: path
+        name: order_id
+        required: true
+        type: string
+      - description: payment
+        in: body
+        name: Payment
+        required: true
+        schema:
+          $ref: '#/definitions/models.PayOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/product_service.PayOrderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Pay for an Order
+      tags:
+      - Payment
+  /api/v1/orders/getall:
+    get:
+      consumes:
+      - application/json
+      description: Get all orders
+      parameters:
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: page
+        in: query
+        name: page
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/product_service.Order'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get all orders
+      tags:
+      - Orders
   /api/v1/products/{id}:
     delete:
       consumes:
@@ -236,6 +795,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: Delete Product
       tags:
       - Product
@@ -281,6 +842,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: Get a Product
       tags:
       - Product
@@ -325,6 +888,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: Update Product
       tags:
       - Product
@@ -373,6 +938,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: Get all ratings for a product
       tags:
       - Product
@@ -425,6 +992,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: Rate A Product
       tags:
       - Product
@@ -471,6 +1040,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: Get All Products
       tags:
       - Product
@@ -511,6 +1082,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: Create Product
       tags:
       - Product
@@ -577,7 +1150,16 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: Get a Product
       tags:
       - Product
+schemes:
+- http
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
