@@ -575,6 +575,19 @@ func (h *productHandler) UpdateShippingInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, resPro)
 }
 
+// @Summary Create New Category for Product
+// @Description Create new category for Product
+// @Tags Categories
+// @Accept  json
+// @Produce  json
+// @Param id query string true "user id"
+// @Param Product_Category body product_service.AddProductCategoryRequest true "product category"
+// @Security ApiKeyAuth
+// @Success 200 {object} product_service.AddArtisanCategoryRequest
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/categories/artisan [post]
 func (h *productHandler) AddArtisanCategory(c *gin.Context) {
 	reqPro := pro.AddArtisanCategoryRequest{}
 	err := c.ShouldBindJSON(&reqPro)
@@ -582,6 +595,7 @@ func (h *productHandler) AddArtisanCategory(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	reqPro.ArtisanId = c.Query("id")
 	resPro, err := h.ProductService.AddArtisanCategory(c, &reqPro)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -593,7 +607,7 @@ func (h *productHandler) AddArtisanCategory(c *gin.Context) {
 
 // @Summary Create New Category for Product
 // @Description Create new category for Product
-// @Tags Product Category
+// @Tags Categories
 // @Accept  json
 // @Produce  json
 // @Param Product_Category body product_service.AddProductCategoryRequest true "product category"

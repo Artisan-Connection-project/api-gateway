@@ -34,6 +34,15 @@ definitions:
       tracking_number:
         type: string
     type: object
+  product_service.AddArtisanCategoryRequest:
+    properties:
+      artisan_id:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+    type: object
   product_service.AddProductCategoryRequest:
     properties:
       description:
@@ -304,6 +313,53 @@ info:
   title: Artisan Connect
   version: "1.0"
 paths:
+  /api/v1/categories/artisan:
+    post:
+      consumes:
+      - application/json
+      description: Create new category for Product
+      parameters:
+      - description: user id
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: product category
+        in: body
+        name: Product_Category
+        required: true
+        schema:
+          $ref: '#/definitions/product_service.AddProductCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/product_service.AddArtisanCategoryRequest'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create New Category for Product
+      tags:
+      - Categories
   /api/v1/categories/product:
     post:
       consumes:
@@ -345,7 +401,7 @@ paths:
       - ApiKeyAuth: []
       summary: Create New Category for Product
       tags:
-      - Product Category
+      - Categories
   /api/v1/orders:
     post:
       consumes:
